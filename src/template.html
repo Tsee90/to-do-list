@@ -6,12 +6,25 @@
     <title>Document</title>
 </head>
 <body>
+    <button id="view-all-btn">VIEW ALL</button>
     <button id="new-project-btn">NEW PROJECT</button>
     <dialog id="new-project-dialog">
         <form action="" id="new-project-form">
             <label for="new-project-name">New Project Name:</label>
             <input type="text" id="new-project-name" name="project-name">
             <button type="submit" id="create-project-btn">Create</button>
+        </form>
+    </dialog>
+    <dialog id="new-item-dialog">
+        <form action="" id="new-item-form">
+            <label for="item-title">Item title:</label>
+            <input type="text" name="item-title" id="item-title">
+            <label for="item-description">Item description</label>
+            <input type="text" name="item-description" id="item-description">
+            <label for="due-date">Due date:</label>
+            <input type="date" name="due-date" id="due-date">
+            <label for="priority">High priority?</label>
+            <input type="checkbox" name="priority" id="priority" value="true">
         </form>
     </dialog>
     <div id="main-container"></div>

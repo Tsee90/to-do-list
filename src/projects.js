@@ -45,7 +45,7 @@ class Project {
         this.items = this.items.filter(i => i.getId() !== item.getId());
     }
 
-    getList(){
+    getItems(){
         return this.items;
     }
 
