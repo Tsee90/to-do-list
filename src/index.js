@@ -1,3 +1,4 @@
+import './style.css';
 import {Item, Project, Library} from './projects.js';
 import {libraryDisplay, updateDisplay} from './displays.js'
 

@@ -1,11 +1,23 @@
+import { he } from "date-fns/locale";
 
 function libraryDisplay(library){
- const libraryArr = library.getProjects();
- const display = document.createElement('div');
- display.id = 'library-display';
+    const libraryArr = library.getProjects();
+
+    const display = document.createElement('div');
+    display.id = 'library-display';
+
+    const titleHeaderDiv = document.createElement('div');
+    titleHeaderDiv.textContent = 'Project Title';
+    titleHeaderDiv.id = 'library-title';
+
+    const dateHeaderDiv = document.createElement('div');
+    dateHeaderDiv.textContent = 'Due Date';
+    dateHeaderDiv.id = 'library-date';
+
+    display.appendChild(titleHeaderDiv);
+    display.appendChild(dateHeaderDiv);
+
  libraryArr.forEach(project => {
-    const projectCard = document.createElement('div');
-    projectCard.classList.add('project-card');
 
     const titleDiv = document.createElement('div');
     titleDiv.classList.add('project-title');
@@ -15,18 +27,8 @@ function libraryDisplay(library){
     dateDiv.classList.add('project-date');
     dateDiv.textContent = project.date;
 
-    const itemList = project.items;
-    const itemsDiv = document.createElement('div');
-    itemList.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.textContent = item.title;
-        itemsDiv.appendChild(itemDiv);
-    });
-
-    projectCard.appendChild(titleDiv);
-    projectCard.appendChild(dateDiv);
-    projectCard.appendChild(itemsDiv);
-    display.appendChild(projectCard);
+    display.appendChild(titleDiv);
+    display.appendChild(dateDiv);
  });
  return display;
 }
