@@ -63,6 +63,10 @@ class Library {
         this.projects.push(project);
     }
 
+    removeProject(project){
+        this.projects = this.projects.filter(p => p.getId() !== project.getId());
+    }
+
     getProjects(){
         return this.projects;
     }

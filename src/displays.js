@@ -1,51 +1,115 @@
+import editImage from './imgs/edit.svg';
+import deleteImage from './imgs/delete.svg';
 
 function libraryDisplay(library){
     const libraryArr = library.getProjects();
 
-    const display = document.createElement('div');
-    display.id = 'library-display';
+    const display = createDivId('library-display');
     display.library = library;
 
-    const titleHeaderDiv = document.createElement('div');
+    const titleHeaderDiv = createDivId('library-title');
     titleHeaderDiv.textContent = 'Project Title';
-    titleHeaderDiv.id = 'library-title';
+    
 
-    const dateHeaderDiv = document.createElement('div');
+    const dateHeaderDiv = createDivId('library-date');
     dateHeaderDiv.textContent = 'Date Created';
-    dateHeaderDiv.id = 'library-date';
 
     display.appendChild(titleHeaderDiv);
     display.appendChild(dateHeaderDiv);
 
- libraryArr.forEach(project => {
+    libraryArr.forEach(project => {
 
-    const titleDiv = document.createElement('div');
-    titleDiv.classList.add('project-title');
-    titleDiv.textContent = project.title;
-    titleDiv.project = project;
+        const titleDiv = createDivClass('project-title');
+        titleDiv.textContent = project.title;
+        titleDiv.project = project;
 
-    const dateDiv = document.createElement('div');
-    dateDiv.classList.add('project-date');
-    dateDiv.textContent = project.date;
-    dateDiv.project = project;
+        const iconContainer = createDivClass('project-icon-container');
+        const edit = createIconDiv(editImage, 'edit-project');
+        edit.project = project;
+        projectEditHandler(edit);
+        
+        const remove = createIconDiv(deleteImage, 'delete-project');
+        remove.project = project;
+        projectRemoveHandler(remove, library);
 
-    display.appendChild(titleDiv);
-    display.appendChild(dateDiv);
- });
+        projectIconHandler(titleDiv, iconContainer);
+
+        iconContainer.appendChild(edit);
+        iconContainer.appendChild(remove);
+        titleDiv.appendChild(iconContainer);
+
+        const dateDiv = createDivClass('project-date');
+        dateDiv.textContent = project.date;
+        dateDiv.project = project;
+
+        display.appendChild(titleDiv);
+        display.appendChild(dateDiv);
+    });
  return display;
+}
+
+function projectIconHandler(div, icons){
+    div.addEventListener('mouseover', toggleOn);
+    div.addEventListener('mouseout', toggleOff);
+
+    function toggleOn(){
+        icons.style.opacity = 1;
+    }
+    function toggleOff(){
+        icons.style.opacity = 0;
+    }
+}
+
+function projectEditHandler(div){
+    div.addEventListener('click', say);
+    function say(){
+        alert('hello')
+    }
+}
+
+function projectRemoveHandler(div, library){
+    div.addEventListener('click', remove);
+
+    function remove(){
+        library.removeProject(div.project);
+        refreshLibraryDisplay();
+    }
+}
+
+function createDivId(id){
+    const div = document.createElement('div');
+    div.id = id;
+    return div;
+}
+
+function createDivClass(cls){
+    const div = document.createElement('div');
+    div.classList.add(cls)
+    return div;
+}
+
+function createIconDiv(img, cls){
+    const icon = document.createElement('img');
+    icon.src = img;
+    const iconDiv = document.createElement('div');
+    iconDiv.classList.add(cls);
+    iconDiv.appendChild(icon);
+    return iconDiv;
+}
+
+function getMainContainer(){
+    return document.querySelector('#main-container');
 }
 
 function refreshLibraryDisplay() {
     const display = document.querySelector('#library-display');
-    const mainContainer = document.querySelector('#main-container');
-    mainContainer.innerHTML = '';
+    getMainContainer().innerHTML = '';
     updateDisplay(libraryDisplay(display.library));
 
 }
 
 function updateDisplay(div){
-    const mainContainer = document.querySelector('#main-container');
-    mainContainer.appendChild(div);
+    getMainContainer().appendChild(div);
 }
 
 export {libraryDisplay, updateDisplay, refreshLibraryDisplay}

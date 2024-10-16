@@ -31,3 +31,13 @@ html, body {
     border-bottom: 2px solid black;
 }
 
+.project-icon-container {
+    display: flex;
+    opacity: 0;
+}
+
+.project-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
