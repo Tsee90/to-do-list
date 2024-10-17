@@ -36,8 +36,13 @@ html, body {
     opacity: 0;
 }
 
-.project-title {
+.item-icon-container,  .item-title-container{
+    display: flex;
+}
+
+.project-title, .item-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+

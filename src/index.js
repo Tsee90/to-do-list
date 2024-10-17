@@ -6,33 +6,12 @@ const init = (function(){
     const library = new Library();
     const defaultProject = new Project('Default Project');
     const defaultItem = new Item('Default', 'Something to do...', new Date(2026, 9, 16), false);
+    const defaultItem2 = new Item('Default2', 'Something else to do...', new Date(2028, 11, 25), true, true);
 
     defaultProject.addItem(defaultItem);
+    defaultProject.addItem(defaultItem2);
     library.addProject(defaultProject);
     updateDisplay(libraryDisplay(library));
-
-    const newProjectButton = document.querySelector('#new-project-btn');
-    newProjectButton.addEventListener('click', clickNewProject);
-
-    const createProjectButton = document.querySelector('#create-project-btn');
-    createProjectButton.addEventListener('click', clickCreateProjectButton);
-
-    const dialog = document.querySelector('#new-project-dialog');
-
-    function clickNewProject(){
-        
-        dialog.showModal();
-    }
-
-    function clickCreateProjectButton(event){
-        event.preventDefault();
-        const projectName = document.querySelector('#new-project-name').value;
-        library.addProject(new Project(projectName));
-        refreshLibraryDisplay();
-        const form = document.querySelector('#new-project-form');
-        form.reset();
-        dialog.close();
-    }
 
     const viewAllButton = document.querySelector('#view-all-btn');
     viewAllButton.addEventListener('click', viewAll);

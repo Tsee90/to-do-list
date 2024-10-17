@@ -2,12 +2,12 @@ import {format} from 'date-fns';
 
 class Item {
     static idNumber = 0;
-    constructor(title, description, dueDate, priority){
+    constructor(title, description, dueDate, priority, status){
         this.title = title;
         this.description = description;
         this.dueDate = format(dueDate, 'MM/dd/yyyy');
         this.priority = priority;
-        this.status = false;
+        this.status = status;
         this.idNumber = ++Item.idNumber;
     }
 
