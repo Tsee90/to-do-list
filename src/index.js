@@ -1,8 +1,8 @@
 import './style.css';
 import {Item, Project, Library} from './projects.js';
-import {init} from './displays.js'
+import {initDisplay} from './displays.js'
 
-const initialize = (function(){
+const init = (function(){
     const library = new Library();
     const defaultProject = new Project('Default Project');
     const defaultItem = new Item('Default', 'Something to do...', new Date(2026, 9, 16), false);
@@ -12,7 +12,7 @@ const initialize = (function(){
     defaultProject.addItem(defaultItem2);
     library.addProject(defaultProject);
     
-    init(library);
+    initDisplay(library);
 
 })();
 

@@ -17,12 +17,10 @@ html, body {
     box-sizing: border-box;
     display: grid;
     grid-template-columns: 3fr 1fr;
-    border: 2px solid black;
-    width: 75%;
-    max-width: 1000px;
+    width: 100%;
 }
 
-#library-display {
+#main-display {
     box-sizing: border-box;
     border: 2px solid black;
     width: 75%;
@@ -53,6 +51,11 @@ html, body {
 .project-icon-container {
     display: flex;
     opacity: 0;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
 }
 
 .item-icon-container,  .item-title-container{

@@ -7,10 +7,10 @@ import {format} from 'date-fns';
 
 
 
-function init(library) {
+function initDisplay(library) {
     const mainDisplay = createDivId('main-display');
     const mainHeader = createDivId('main-header');
-    const mainBody = createDivClass('main-body');
+    const mainBody = createDivId('main-body');
 
     const libraryDisplayer = libraryDisplay(library);
     const tabsDisplayer = tabsDisplay(library);
@@ -34,7 +34,6 @@ function tabsDisplay(library){
 
     function viewAll(){
         updateMainBodyDisplay(libraryDisplay(library));
-        alert('hellio')
     }
     display.appendChild(libraryButton);
     return display;
@@ -89,6 +88,14 @@ function createProjectListDisplay(library){
     const projectListDisplay = createDivId('project-list-display');
 
     projectList.forEach(project => {
+        projectListDisplay.appendChild(createProjectContainer(project, library))
+;
+    });
+
+    return projectListDisplay;
+}
+
+function createProjectContainer(project, library) {
         const projectContainerID = 'project-container-' + project.getId();
         const projectContainer = createDivClass('project-container');
         projectContainer.id = projectContainerID;
@@ -103,7 +110,7 @@ function createProjectListDisplay(library){
         const iconContainer = createDivClass('project-icon-container');
         const edit = createIconDiv(editImage, 'edit-project');
         edit.project = project;
-        projectEditHandler(edit);
+        editProjectHandler(edit);
         
         const remove = createIconDiv(deleteImage, 'delete-project');
         remove.project = project;
@@ -122,17 +129,15 @@ function createProjectListDisplay(library){
 
         projectContainer.appendChild(titleIconWrapper);
         projectContainer.appendChild(dateDiv);
-        projectListDisplay.appendChild(projectContainer);
-
-    });
-
-    return projectListDisplay;
+        return projectContainer;
 }
 
 function addProjectHandler(button){
     button.addEventListener('click', addProject);
     function addProject(){
         const dialog = createProjectDialog(button.library);
+        getMainBodyContainer().appendChild(dialog);
+        dialog.showModal();
     }
 }
 
@@ -165,8 +170,9 @@ function createProjectDialog(library) {
     function clickCreateProjectButton(event){
         event.preventDefault();
         const projectName = nameInput.value;
-        library.addProject(new Project(projectName));
-        refreshLibraryDisplay();
+        const newProject = new Project(projectName)
+        library.addProject(newProject);
+        document.querySelector('#library-display').appendChild(createProjectContainer(newProject, library))
         form.reset();
         dialog.close();
     }
@@ -181,12 +187,12 @@ function createProjectDialog(library) {
     form.appendChild(closeButton);
 
     dialog.appendChild(form);
-    getMainContainer().appendChild(dialog);
-    dialog.showModal();
+    return dialog;
+
 }
 
 
-function projectDisplay(project){
+function createProjectDisplay(project){
     const itemList = project.getItems();
 
     const display = createDivId('project-display');
@@ -260,7 +266,7 @@ function removeItemHandler(icon){
     function clickRemoveItem(event){
         event.preventDefault();
         icon.project.removeItem(icon.item);
-        updateMainBodyDisplay(projectDisplay(icon.project));
+        updateMainBodyDisplay(createProjectDisplay(icon.project));
     }
 }
 
@@ -313,7 +319,7 @@ function editItemHandler(icon){
     function clickEdit(event){
         event.preventDefault();
         const dialog = createEditItemDialog(icon);
-        getMainContainer().appendChild(dialog);
+        getMainBodyContainer().appendChild(dialog);
         dialog.showModal();
     }
 
@@ -344,7 +350,7 @@ function createEditItemDialog(icon){
         item.dueDate = formData.get('due-date');
         item.priority = formData.get('priority');
 
-        updateMainBodyDisplay(projectDisplay(project));
+        updateMainBodyDisplay(createProjectDisplay(project));
         dialog.remove();
     }
 
@@ -362,7 +368,7 @@ function addItemHandler(button){
     function addItem(event){
         event.preventDefault();
         const dialog = createItemDialog(button.project);
-        getMainContainer().appendChild(dialog);
+        getMainBodyContainer().appendChild(dialog);
         dialog.showModal();
     }
 }
@@ -388,7 +394,7 @@ function createItemDialog(project) {
 
         const newItem = new Item(titleInput, descriptionInput, dueDateInput, priorityInput);
         project.addItem(newItem);
-        updateMainBodyDisplay(projectDisplay(project));
+        updateMainBodyDisplay(createProjectDisplay(project));
         dialog.remove();
     }
 
@@ -482,10 +488,10 @@ function projectIconHandler(div, icons){
     }
 }
 
-function projectEditHandler(div){
+function editProjectHandler(div){
     div.addEventListener('click', clickEdit);
     function clickEdit(){
-        const display = projectDisplay(div.project);
+        const display = createProjectDisplay(div.project);
         updateMainBodyDisplay(display);
     }
 }
@@ -538,16 +544,9 @@ function getMainBodyContainer(){
     return document.querySelector('#main-body');
 }
 
-function refreshLibraryDisplay() {
-    const display = document.querySelector('#library-display');
-    getMainContainer().innerHTML = '';
-    updateMainBodyDisplay(libraryDisplay(display.library));
-
-}
-
 function updateMainBodyDisplay(div){
     getMainBodyContainer().innerHTML = '';
     getMainBodyContainer().appendChild(div);
 }
 
-export {libraryDisplay, refreshLibraryDisplay, tabsDisplay, init}
+export {initDisplay}
