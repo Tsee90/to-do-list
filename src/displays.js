@@ -5,29 +5,96 @@ import collapseImage from './imgs/collapse.svg';
 import {Item, Project, Library} from './projects.js';
 import {format} from 'date-fns';
 
+
+
+function init(library) {
+    const mainDisplay = createDivId('main-display');
+    const mainHeader = createDivId('main-header');
+    const mainBody = createDivClass('main-body');
+
+    const libraryDisplayer = libraryDisplay(library);
+    const tabsDisplayer = tabsDisplay(library);
+
+    mainHeader.appendChild(tabsDisplayer);
+    mainBody.appendChild(libraryDisplayer);
+
+    mainDisplay.appendChild(mainHeader);
+    mainDisplay.appendChild(mainBody);
+
+    const mainContainer = document.querySelector('#main-container');
+    mainContainer.appendChild(mainDisplay);
+}
+
+function tabsDisplay(library){
+    const display = createDivId('tabs-display');
+    const libraryButton = document.createElement('button');
+    libraryButton.id = 'library-button';
+    libraryButton.textContent = 'library';
+    libraryButton.addEventListener('click', viewAll);
+
+    function viewAll(){
+        updateMainBodyDisplay(libraryDisplay(library));
+        alert('hellio')
+    }
+    display.appendChild(libraryButton);
+    return display;
+}
+
 function libraryDisplay(library){
-    const projectList = library.getProjects();
 
-    const display = createDivId('library-display');
-    display.library = library;
+    const libraryDisplay = createDivId('library-display');
+    libraryDisplay.library = library;
 
-    const titleHeaderDiv = createDivId('library-title');
+    const libraryHeader = createLibraryHeaderDisplay(library);
+
+    const projectListDisplay = createProjectListDisplay(library);
+
+    libraryDisplay.appendChild(libraryHeader);
+
+    libraryDisplay.appendChild(projectListDisplay);
+
+
+ return libraryDisplay;
+}
+
+function createLibraryHeaderDisplay(library){
+
+    const libraryHeaderContainer = createDivId('library-header-container');
+
+    const libraryHeaderTitleWrapper = createDivId('library-header-title-wrapper');
+
+    const titleHeaderDiv = createDivId('library-header-title');
     titleHeaderDiv.textContent = 'Project Title';
 
     const newProjectButton = document.createElement('button');
     newProjectButton.textContent = '+ New Project';
     newProjectButton.library = library;
     addProjectHandler(newProjectButton);
-    titleHeaderDiv.appendChild(newProjectButton);
-    
+
+    libraryHeaderTitleWrapper.appendChild(titleHeaderDiv);
+    libraryHeaderTitleWrapper.appendChild(newProjectButton);
 
     const dateHeaderDiv = createDivId('library-date');
     dateHeaderDiv.textContent = 'Date Created';
 
-    display.appendChild(titleHeaderDiv);
-    display.appendChild(dateHeaderDiv);
+    libraryHeaderContainer.appendChild(libraryHeaderTitleWrapper);
+    libraryHeaderContainer.appendChild(dateHeaderDiv);
+
+    return libraryHeaderContainer;
+}
+
+function createProjectListDisplay(library){
+
+    const projectList = library.getProjects();
+    const projectListDisplay = createDivId('project-list-display');
 
     projectList.forEach(project => {
+        const projectContainerID = 'project-container-' + project.getId();
+        const projectContainer = createDivClass('project-container');
+        projectContainer.id = projectContainerID;
+        projectContainer.project = project;
+
+        const titleIconWrapper = createDivClass('title-icon-wrapper');
 
         const titleDiv = createDivClass('project-title');
         titleDiv.textContent = project.title;
@@ -42,20 +109,24 @@ function libraryDisplay(library){
         remove.project = project;
         projectRemoveHandler(remove, library);
 
-        projectIconHandler(titleDiv, iconContainer);
+        projectIconHandler(titleIconWrapper, iconContainer);
 
         iconContainer.appendChild(edit);
         iconContainer.appendChild(remove);
-        titleDiv.appendChild(iconContainer);
+        titleIconWrapper.appendChild(titleDiv);
+        titleIconWrapper.appendChild(iconContainer);
 
         const dateDiv = createDivClass('project-date');
         dateDiv.textContent = project.date;
         dateDiv.project = project;
 
-        display.appendChild(titleDiv);
-        display.appendChild(dateDiv);
+        projectContainer.appendChild(titleIconWrapper);
+        projectContainer.appendChild(dateDiv);
+        projectListDisplay.appendChild(projectContainer);
+
     });
- return display;
+
+    return projectListDisplay;
 }
 
 function addProjectHandler(button){
@@ -189,7 +260,7 @@ function removeItemHandler(icon){
     function clickRemoveItem(event){
         event.preventDefault();
         icon.project.removeItem(icon.item);
-        updateDisplay(projectDisplay(icon.project));
+        updateMainBodyDisplay(projectDisplay(icon.project));
     }
 }
 
@@ -273,7 +344,7 @@ function createEditItemDialog(icon){
         item.dueDate = formData.get('due-date');
         item.priority = formData.get('priority');
 
-        updateDisplay(projectDisplay(project));
+        updateMainBodyDisplay(projectDisplay(project));
         dialog.remove();
     }
 
@@ -317,7 +388,7 @@ function createItemDialog(project) {
 
         const newItem = new Item(titleInput, descriptionInput, dueDateInput, priorityInput);
         project.addItem(newItem);
-        updateDisplay(projectDisplay(project));
+        updateMainBodyDisplay(projectDisplay(project));
         dialog.remove();
     }
 
@@ -415,7 +486,7 @@ function projectEditHandler(div){
     div.addEventListener('click', clickEdit);
     function clickEdit(){
         const display = projectDisplay(div.project);
-        updateDisplay(display);
+        updateMainBodyDisplay(display);
     }
 }
 
@@ -423,9 +494,18 @@ function projectRemoveHandler(div, library){
     div.addEventListener('click', remove);
 
     function remove(){
+        removeProjectFromDisplay(div.project);
         library.removeProject(div.project);
-        refreshLibraryDisplay();
     }
+}
+
+function removeProjectFromDisplay(project) {
+    const projectDisplayList = document.querySelectorAll('.project-container');
+    projectDisplayList.forEach(div => {
+        if (div.id === 'project-container-' + project.idNumber.toString()){
+            div.remove();
+        }
+    });
 }
 
 function createDivId(id){
@@ -454,20 +534,20 @@ function createIcon(img){
     return icon;
 }
 
-function getMainContainer(){
-    return document.querySelector('#main-container');
+function getMainBodyContainer(){
+    return document.querySelector('#main-body');
 }
 
 function refreshLibraryDisplay() {
     const display = document.querySelector('#library-display');
     getMainContainer().innerHTML = '';
-    updateDisplay(libraryDisplay(display.library));
+    updateMainBodyDisplay(libraryDisplay(display.library));
 
 }
 
-function updateDisplay(div){
-    getMainContainer().innerHTML = '';
-    getMainContainer().appendChild(div);
+function updateMainBodyDisplay(div){
+    getMainBodyContainer().innerHTML = '';
+    getMainBodyContainer().appendChild(div);
 }
 
-export {libraryDisplay, updateDisplay, refreshLibraryDisplay}
+export {libraryDisplay, refreshLibraryDisplay, tabsDisplay, init}
