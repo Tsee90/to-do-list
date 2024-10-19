@@ -2,6 +2,8 @@ import editImage from './imgs/edit.svg';
 import deleteImage from './imgs/delete.svg';
 import expandImage from './imgs/expand.svg';
 import collapseImage from './imgs/collapse.svg';
+import priorityImage from './imgs/priority-high.svg';
+import cancelImage from './imgs/cancel.svg';
 import {Item, Project, Library} from './projects.js';
 import {format} from 'date-fns';
 
@@ -13,9 +15,9 @@ function initDisplay(library) {
     const mainBody = createDivId('main-body');
 
     const libraryDisplayer = libraryDisplay(library);
-    const tabsDisplayer = tabsDisplay(library);
+    const homeTab = createLibraryTab(library);
 
-    mainHeader.appendChild(tabsDisplayer);
+    mainHeader.appendChild(homeTab);
     mainBody.appendChild(libraryDisplayer);
 
     mainDisplay.appendChild(mainHeader);
@@ -25,18 +27,69 @@ function initDisplay(library) {
     mainContainer.appendChild(mainDisplay);
 }
 
-function tabsDisplay(library){
-    const display = createDivId('tabs-display');
-    const libraryButton = document.createElement('button');
-    libraryButton.id = 'library-button';
-    libraryButton.textContent = 'library';
-    libraryButton.addEventListener('click', viewAll);
+function createLibraryTab(library){
+    const libraryTab= createDivClass('tab');
+    libraryTab.id = 'library-tab';
+    libraryTab.textContent = 'library';
+    libraryTab.addEventListener('click', viewAll);
+    libraryTab.library = library;
 
     function viewAll(){
         updateMainBodyDisplay(libraryDisplay(library));
     }
-    display.appendChild(libraryButton);
-    return display;
+    
+    return libraryTab;
+}
+
+function createProjectTab(project){
+    const projectTab = createDivClass('tab');
+    projectTab.id = 'project-tab-' + project.idNumber;
+    projectTab.project = project;
+
+    const projectTabTitle = createDivClass('tab-title');
+    projectTabTitle.project = project;
+    projectTabTitle.textContent = project.title;
+
+
+    editProjectHandler(projectTabTitle);
+    const removeIcon = createIconDiv(cancelImage, 'remove-tab');
+    removeTabHandler(projectTab, removeIcon);
+
+    projectTab.appendChild(projectTabTitle);
+    projectTab.appendChild(removeIcon);
+    
+    return projectTab;
+}
+
+function addTab(tab) {
+    if(!isTabOpen(tab)){
+        document.querySelector('#main-header').appendChild(tab);
+    }
+}
+
+function removeTabHandler(tab, icon){
+    icon.addEventListener('click', removeTab);
+    function removeTab(event){
+        event.preventDefault();
+        const tabList = document.querySelectorAll('.tab');
+        tabList.forEach(div => {
+            if (div.id === 'project-tab-' + tab.project.idNumber.toString()){
+                div.remove();
+                const library = document.querySelector('#library-tab').library;
+                updateMainBodyDisplay(libraryDisplay(library))
+            }
+        })
+    }
+}
+
+function isTabOpen(tab){
+    const tabList = document.querySelectorAll('.tab');
+    let open = false;
+    tabList.forEach(div => {
+    if(tab.id === div.id)
+        open = true;
+    });
+    return open;
 }
 
 function libraryDisplay(library){
@@ -198,6 +251,8 @@ function createProjectDisplay(project){
     const display = createDivId('project-display');
     display.project = project;
 
+    const projectDisplayHeader = createDivId('project-display-header');
+
     const titleHeaderDiv = createDivId('item-title');
     titleHeaderDiv.textContent = 'Items';
 
@@ -210,55 +265,81 @@ function createProjectDisplay(project){
     const dateHeaderDiv = createDivId('item-due-date');
     dateHeaderDiv.textContent = 'Due Date';
 
-    display.appendChild(titleHeaderDiv);
-    display.appendChild(dateHeaderDiv);
+    projectDisplayHeader.appendChild(titleHeaderDiv);
+    projectDisplayHeader.appendChild(dateHeaderDiv);
+    display.appendChild(projectDisplayHeader);
+
+    const projectItemListDisplay = createDivId('project-item-list-display');
+    display.appendChild(projectItemListDisplay);
 
     itemList.forEach(item => {
         const itemContainer = createDivClass('item-container');
         itemContainer.item = item;
+        itemContainer.project = project;
+        itemContainer.id = 'item-container-' + item.idNumber;
 
-        const itemHeader = createDivClass('item-header');
+        updateItemContainer(itemContainer);
 
-        const titleContainer = createDivClass('item-title-container');
-
-        const checkBox = createItemStatusCheckbox(item);
-        titleContainer.appendChild(checkBox);
-
-        const titleDiv = createDivClass('item-title');
-        titleDiv.textContent = item.title;
-        titleContainer.appendChild(titleDiv);
-
-        const iconContainer = createDivClass('item-icon-container');
-
-        const edit = createIconDiv(editImage, 'edit-item');
-        edit.item = item;
-        edit.project = project;
-        editItemHandler(edit);
-
-        const expand = createIconDiv(expandImage, 'expand-item');
-        expand.item = item;
-        itemExpandHandler(expand, itemContainer);
-
-        const remove = createIconDiv(deleteImage, 'remove-item');
-        remove.item = item;
-        remove.project = project;
-        removeItemHandler(remove);
-
-        iconContainer.appendChild(expand);
-        iconContainer.appendChild(edit);
-        iconContainer.appendChild(remove);
-        itemHeader.appendChild(titleContainer);
-        itemHeader.appendChild(iconContainer);
-        itemContainer.appendChild(itemHeader);
-
-        const dateDiv = createDivClass('item-date');
-        dateDiv.textContent = item.dueDate;
-        dateDiv.item = item;
-
-        display.appendChild(itemContainer);
-        display.appendChild(dateDiv);
+        projectItemListDisplay.appendChild(itemContainer);
     })
     return display;
+}
+
+function updateItemContainer(div){
+    let isExpand = false;
+    if(div.querySelector('.item-description-container') !== null){
+        isExpand = true;
+    }
+    div.innerHTML = '';
+    const item = div.item;
+    const project = div.project;
+
+    const itemHeader = createDivClass('item-header');
+
+    const titleContainer = createDivClass('item-title-container');
+
+    const checkBox = createItemStatusCheckbox(item);
+    titleContainer.appendChild(checkBox);
+
+    const titleDiv = createDivClass('item-title');
+    titleDiv.textContent = item.title;
+    titleContainer.appendChild(titleDiv);
+
+    const priorityDiv = createPriorityDiv(item);
+    titleContainer.appendChild(priorityDiv);
+
+    const iconContainer = createDivClass('item-icon-container');
+
+    const edit = createIconDiv(editImage, 'edit-item');
+    edit.item = item;
+    edit.project = project;
+    editItemHandler(edit, div);
+
+    const expand = createIconDiv(expandImage, 'expand-item');
+    expand.item = item;
+    itemExpandHandler(expand, div);
+    
+
+    const remove = createIconDiv(deleteImage, 'remove-item');
+    remove.item = item;
+    remove.project = project;
+    removeItemHandler(remove);
+
+    iconContainer.appendChild(expand);
+    iconContainer.appendChild(edit);
+    iconContainer.appendChild(remove);
+    itemHeader.appendChild(titleContainer);
+    itemHeader.appendChild(iconContainer);
+    div.appendChild(itemHeader);
+
+    const dateDiv = createDivClass('item-date');
+    dateDiv.textContent = item.dueDate;
+    dateDiv.item = item;
+
+    div.appendChild(dateDiv);
+    if(isExpand){
+        expand.click();
+    }
 }
 
 function removeItemHandler(icon){
@@ -266,7 +347,7 @@ function removeItemHandler(icon){
     function clickRemoveItem(event){
         event.preventDefault();
         icon.project.removeItem(icon.item);
-        updateMainBodyDisplay(createProjectDisplay(icon.project));
+        removeItemFromDisplay(icon.item);
     }
 }
 
@@ -274,7 +355,7 @@ function itemExpandHandler(icon, div){
     icon.addEventListener('click', clickExpand);
     function clickExpand(event){
         event.preventDefault();
-        const descriptionDiv = document.createElement('div');
+        const descriptionDiv = createDivClass('item-description-container');
         descriptionDiv.textContent = div.item.description;
         div.appendChild(descriptionDiv);
         const collapse = createIcon(collapseImage);
@@ -299,11 +380,27 @@ function itemCollapseHandler(icon, div){
     }
 }
 
+function createPriorityDiv(item) {
+    const priorityDiv = createDivClass('priority-container');
+    updatePriority(item, priorityDiv);
+    return priorityDiv;
+}
+
+function updatePriority(item, div) {
+    if(item.priority){
+        const priority = createIcon(priorityImage);
+        div.appendChild(priority);
+    }else{
+        div.innerHTML = '';
+    }
+}
+
 function createItemStatusCheckbox(item){
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.id = 'statusCheckbox';
+    checkbox.classList.add('statusCheckbox');
     checkbox.checked = item.status;  
+    checkbox.name = 'status-checkbox';
 
     checkbox.addEventListener('change', clickCheck);
 
@@ -314,18 +411,18 @@ function createItemStatusCheckbox(item){
     return checkbox;
 }
 
-function editItemHandler(icon){
+function editItemHandler(icon, div){
     icon.addEventListener('click', clickEdit);
     function clickEdit(event){
         event.preventDefault();
-        const dialog = createEditItemDialog(icon);
+        const dialog = createEditItemDialog(icon, div);
         getMainBodyContainer().appendChild(dialog);
         dialog.showModal();
     }
 
 }
 
-function createEditItemDialog(icon){
+function createEditItemDialog(icon, div){
     const item = icon.item;
     const project = icon.project;
     const dialog = document.createElement('dialog');
@@ -335,7 +432,7 @@ function createEditItemDialog(icon){
     form.querySelector('#item-title').value = item.title;
     form.querySelector('#item-description').value = item.description;
     form.querySelector('#due-date').value = format(item.dueDate, 'yyyy-MM-dd');
-    form.querySelector('#priority').value = item.priority;
+    form.querySelector('#priority').checked = item.priority;
 
     const submitButton = form.querySelector('#create-item-btn');
     submitButton.textContent = 'Save';
@@ -350,7 +447,7 @@ function createEditItemDialog(icon){
         item.dueDate = formData.get('due-date');
         item.priority = formData.get('priority');
 
-        updateMainBodyDisplay(createProjectDisplay(project));
+        updateItemContainer(div);
         dialog.remove();
     }
 
@@ -493,6 +590,8 @@ function editProjectHandler(div){
     function clickEdit(){
         const display = createProjectDisplay(div.project);
         updateMainBodyDisplay(display);
+        const tab = createProjectTab(div.project);
+        addTab(tab);
     }
 }
 
@@ -509,6 +608,15 @@ function removeProjectFromDisplay(project) {
     const projectDisplayList = document.querySelectorAll('.project-container');
     projectDisplayList.forEach(div => {
         if (div.id === 'project-container-' + project.idNumber.toString()){
+            div.remove();
+        }
+    });
+}
+
+function removeItemFromDisplay(item) {
+    const itemDisplayList = document.querySelectorAll('.item-container');
+    itemDisplayList.forEach(div => {
+        if (div.id === 'item-container-' + item.idNumber.toString()){
             div.remove();
         }
     });

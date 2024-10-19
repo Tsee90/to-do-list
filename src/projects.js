@@ -26,6 +26,9 @@ class Item {
             this.status = false;
         }
     }
+    getPriority(){
+        return this.priority;
+    }
 }
 
 class Project {
