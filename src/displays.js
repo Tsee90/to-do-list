@@ -114,7 +114,8 @@ function removeTabHandler(tab, icon){
             if (div.id === 'project-tab-' + tab.project.idNumber.toString()){
                 div.remove();
                 const library = document.querySelector('#library-tab').library;
-                updateMainBodyDisplay(libraryDisplay(library))
+                updateMainBodyDisplay(libraryDisplay(library));
+                updateTabs();
             }
         })
     }
