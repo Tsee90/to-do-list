@@ -5,8 +5,10 @@ import {initDisplay} from './displays.js'
 const init = (function(){
     const library = new Library();
     const defaultProject = new Project('Default Project');
-    const defaultItem = new Item('Default', 'Something to do...', new Date(2026, 9, 16), false);
-    const defaultItem2 = new Item('Default2', 'Something else to do...', new Date(2028, 11, 25), true, true);
+    const defaultItem = new Item('Default', 'Something to do...', false);
+    const defaultItem2 = new Item('Default2', 'Something else to do...', true, true);
+    defaultItem.setDueDate('2026-10-10');
+    defaultItem2.setDueDate('2028-06-26');
 
     defaultProject.addItem(defaultItem);
     defaultProject.addItem(defaultItem2);

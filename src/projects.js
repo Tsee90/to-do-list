@@ -2,15 +2,18 @@ import {format} from 'date-fns';
 
 class Item {
     static idNumber = 0;
-    constructor(title, description, dueDate, priority, status){
+    constructor(title, description, priority, status){
         this.title = title;
         this.description = description;
-        this.dueDate = format(dueDate, 'MM/dd/yyyy');
+        this.dueDate = '';
         this.priority = priority;
         this.status = status;
         this.idNumber = ++Item.idNumber;
     }
 
+    setDueDate(date){
+        this.dueDate = date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$2/$3/$1');
+    }
     getItem(){
         return this;
     }

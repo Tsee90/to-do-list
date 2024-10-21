@@ -4,6 +4,7 @@ import expandImage from './imgs/expand.svg';
 import collapseImage from './imgs/collapse.svg';
 import priorityImage from './imgs/priority-high.svg';
 import cancelImage from './imgs/cancel.svg';
+import openImage from './imgs/open.svg';
 import {Item, Project, Library} from './projects.js';
 import {format} from 'date-fns';
 
@@ -28,11 +29,12 @@ function initDisplay(library) {
 }
 
 function createLibraryTab(library){
-    const libraryTab= createDivClass('library-tab');
+    const libraryTab= createDivClass('tab');
     libraryTab.id = 'library-tab';
-    libraryTab.textContent = 'library';
+    libraryTab.textContent = 'Library';
     libraryTab.addEventListener('click', viewAll);
     libraryTab.library = library;
+    libraryTab.classList.add('tab-on');
 
     function viewAll(){
         updateMainBodyDisplay(libraryDisplay(library));
@@ -53,7 +55,7 @@ function createProjectTab(project){
 
     const removeIcon = createIconDiv(cancelImage, 'remove-tab');
     removeTabHandler(projectTab, removeIcon);
-    editProjectHandler(projectTabTitle);
+    openProjectHandler(projectTabTitle);
     projectTab.appendChild(projectTabTitle);
     projectTab.appendChild(removeIcon);
     
@@ -63,27 +65,38 @@ function createProjectTab(project){
 function updateTabs(){
     const tabList = document.querySelectorAll('.tab');
     const projectDisplay = document.querySelector('#project-display');
-    if(projectDisplay !== null && projectDisplay !== undefined){
 
+    if(projectDisplay !== null && projectDisplay !== undefined){
+        document.querySelector('#library-tab').classList.remove('tab-on');
         tabList.forEach(tab => {
             if(tab.project !== undefined && tab.project !== null){
                 if(tab.project.idNumber === projectDisplay.project.idNumber){
                     tab.querySelector('.remove-tab').style.display = 'flex';
-                    tab.style.backgroundColor = 'white';
+                    tab.classList.add('tab-on');
                 }else{
                     tab.querySelector('.remove-tab').style.display = 'none';
-                    tab.style.backgroundColor = 'transparent';
+                    tab.classList.remove('tab-on');
                 }
             }
         });
     }else{
+        document.querySelector('#library-tab').classList.add('tab-on');
         tabList.forEach(tab => {
             if(tab.project !== undefined && tab.project !== null){ 
                 tab.querySelector('.remove-tab').style.display = 'none'; 
-                tab.style.backgroundColor = 'transparent';
+                tab.classList.remove('tab-on');
             }
         });
     }
+}
+
+function updateTabNames(){
+    const tabList = document.querySelectorAll('.tab');
+    tabList.forEach(tab => {
+        if(tab.project !== undefined && tab.project !== null){ 
+            tab.querySelector('.tab-title').textContent = tab.project.title;
+        }
+    });
 }
 
 function addTab(tab) {
@@ -126,9 +139,13 @@ function libraryDisplay(library){
 
     const projectListDisplay = createProjectListDisplay(library);
 
+    const projectListDisplayWrapper = createDivId('project-list-display-wrapper');
+
+    projectListDisplayWrapper.appendChild(projectListDisplay);
+
     libraryDisplay.appendChild(libraryHeader);
 
-    libraryDisplay.appendChild(projectListDisplay);
+    libraryDisplay.appendChild(projectListDisplayWrapper);
 
 
  return libraryDisplay;
@@ -141,10 +158,11 @@ function createLibraryHeaderDisplay(library){
     const libraryHeaderTitleWrapper = createDivId('library-header-title-wrapper');
 
     const titleHeaderDiv = createDivId('library-header-title');
-    titleHeaderDiv.textContent = 'Project Title';
+    titleHeaderDiv.textContent = 'Projects';
 
     const newProjectButton = document.createElement('button');
-    newProjectButton.textContent = '+ New Project';
+    newProjectButton.id = 'new-project-btn';
+    newProjectButton.textContent = '+';
     newProjectButton.library = library;
     addProjectHandler(newProjectButton);
 
@@ -186,9 +204,14 @@ function createProjectContainer(project, library) {
         titleDiv.project = project;
 
         const iconContainer = createDivClass('project-icon-container');
+        const open = createIconDiv(openImage, 'open-project');
+        open.project = project;
+        openProjectHandler(open);
+
         const edit = createIconDiv(editImage, 'edit-project');
         edit.project = project;
-        editProjectHandler(edit);
+        edit.library = library;
+        editProjectHandler(edit)
         
         const remove = createIconDiv(deleteImage, 'delete-project');
         remove.project = project;
@@ -196,6 +219,7 @@ function createProjectContainer(project, library) {
 
         projectIconHandler(titleIconWrapper, iconContainer);
 
+        iconContainer.appendChild(open);
         iconContainer.appendChild(edit);
         iconContainer.appendChild(remove);
         titleIconWrapper.appendChild(titleDiv);
@@ -223,13 +247,42 @@ function createProjectDialog(library) {
     const dialog = document.createElement('dialog');
     dialog.id = 'new-project-dialog';
 
+    const form = createProjectForm();
+
+    const submitButton = form.querySelector('#create-project-btn');
+    submitButton.textContent = 'Create';
+    submitButton.library = library;
+    submitButton.addEventListener('click', createProject);
+
+    function createProject(event){
+        event.preventDefault();
+        const formData = new FormData(form);
+        const projectName = formData.get('project-name');
+        const newProject = new Project(projectName);
+
+        library.addProject(newProject);
+        updateMainBodyDisplay(libraryDisplay(library));
+        dialog.remove();
+    }
+
+    const closeButton = form.querySelector('#close-item-dialog-btn');
+    closeButton.addEventListener('click', function() {
+        dialog.remove(); 
+    });
+
+    dialog.appendChild(form);
+    return dialog;
+
+}
+
+function createProjectForm(){
     const form = document.createElement('form');
     form.action = ""; 
     form.id = 'new-project-form';
 
     const nameLabel = document.createElement('label');
     nameLabel.setAttribute('for', 'new-project-name');
-    nameLabel.textContent = 'New Project Name:';
+    nameLabel.textContent = 'Project Name:';
     form.appendChild(nameLabel);
 
     const nameInput = document.createElement('input');
@@ -238,35 +291,64 @@ function createProjectDialog(library) {
     nameInput.name = 'project-name';
     form.appendChild(nameInput);
 
+    const formButtonWrapper = createDivClass('form-button-wrapper');
+
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
     submitButton.id = 'create-project-btn';
-    submitButton.textContent = 'Create';
-    submitButton.addEventListener('click', clickCreateProjectButton);
-    form.appendChild(submitButton);
-
-    function clickCreateProjectButton(event){
-        event.preventDefault();
-        const projectName = nameInput.value;
-        const newProject = new Project(projectName)
-        library.addProject(newProject);
-        document.querySelector('#library-display').appendChild(createProjectContainer(newProject, library))
-        form.reset();
-        dialog.close();
-    }
+    submitButton.textContent = 'Submit';
+    formButtonWrapper.appendChild(submitButton);
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button'; 
     closeButton.id = 'close-item-dialog-btn';
     closeButton.textContent = 'Close';
+    formButtonWrapper.appendChild(closeButton);
+
+    form.appendChild(formButtonWrapper);
+    return form;
+}
+
+function createEditProjectDialog(edit){
+    const dialog = document.createElement('dialog');
+    dialog.id = 'new-project-dialog';
+
+    const form = createProjectForm();
+    form.querySelector('#new-project-name').value = edit.project.title;
+
+    const submitButton = form.querySelector('#create-project-btn');
+    submitButton.textContent = 'Save';
+    submitButton.addEventListener('click', editProject);
+
+    function editProject(event){
+        event.preventDefault();
+        const formData = new FormData(form);
+        const projectName = formData.get('project-name');
+        edit.project.title = projectName;
+
+        updateMainBodyDisplay(libraryDisplay(edit.library));
+        updateTabNames();
+        dialog.remove();
+    }
+
+    const closeButton = form.querySelector('#close-item-dialog-btn');
     closeButton.addEventListener('click', function() {
-        dialog.close(); 
+        dialog.remove(); 
     });
-    form.appendChild(closeButton);
 
     dialog.appendChild(form);
     return dialog;
 
+}
+
+function editProjectHandler(editIcon){
+    editIcon.addEventListener('click', clickEdit);
+    function clickEdit(event){
+        event.preventDefault();
+        const dialog = createEditProjectDialog(editIcon);
+        getMainBodyContainer().appendChild(dialog);
+        dialog.showModal();
+    }
 }
 
 
@@ -282,7 +364,8 @@ function createProjectDisplay(project){
     titleHeaderDiv.textContent = 'Items';
 
     const addItemButton = document.createElement('button');
-    addItemButton.textContent = 'Add Item';
+    addItemButton.id = 'new-item-button';
+    addItemButton.textContent = '+';
     addItemButton.project = project;
     addItemHandler(addItemButton);
     titleHeaderDiv.appendChild(addItemButton);
@@ -295,7 +378,10 @@ function createProjectDisplay(project){
     display.appendChild(projectDisplayHeader);
 
     const projectItemListDisplay = createDivId('project-item-list-display');
-    display.appendChild(projectItemListDisplay);
+
+    const projectItemListDisplayWrapper = createDivId('project-item-list-display-wrapper');
+    projectItemListDisplayWrapper.appendChild(projectItemListDisplay);
+    display.appendChild(projectItemListDisplayWrapper);
 
     itemList.forEach(item => {
         const itemContainer = createDivClass('item-container');
@@ -416,6 +502,7 @@ function createPriorityDiv(item) {
 function updatePriority(item, div) {
     if(item.priority){
         const priority = createIcon(priorityImage);
+        priority.classList.add('icon');
         div.appendChild(priority);
     }else{
         div.innerHTML = '';
@@ -456,7 +543,7 @@ function createEditItemDialog(icon, div){
     dialog.id = 'edit-item-dialog';
 
     const form = createItemForm();
-    form.querySelector('#item-title').value = item.title;
+    form.querySelector('#form-item-title').value = item.title;
     form.querySelector('#item-description').value = item.description;
     form.querySelector('#due-date').value = format(item.dueDate, 'yyyy-MM-dd');
     form.querySelector('#priority').checked = item.priority;
@@ -471,7 +558,7 @@ function createEditItemDialog(icon, div){
         const formData = new FormData(form);
         item.title = formData.get('item-title');
         item.description = formData.get('item-description');
-        item.dueDate = formData.get('due-date');
+        item.setDueDate(formData.get('due-date'));
         item.priority = formData.get('priority');
 
         updateItemContainer(div);
@@ -511,12 +598,13 @@ function createItemDialog(project) {
     function createItem(event){
         event.preventDefault();
         const formData = new FormData(form);
-        const titleInput = formData.get('item-title');
+        const titleInput = formData.get('form-item-title');
         const descriptionInput = formData.get('item-description');
         const dueDateInput = formData.get('due-date');
         const priorityInput = formData.get('priority');
 
-        const newItem = new Item(titleInput, descriptionInput, dueDateInput, priorityInput);
+        const newItem = new Item(titleInput, descriptionInput, priorityInput);
+        newItem.setDueDate(dueDateInput);
         project.addItem(newItem);
         updateMainBodyDisplay(createProjectDisplay(project));
         dialog.remove();
@@ -539,13 +627,14 @@ function createItemForm(){
 
     const titleLabel = document.createElement('label');
     titleLabel.setAttribute('for', 'item-title');
-    titleLabel.textContent = 'Item title:';
+    titleLabel.textContent = 'Item Name:';
     form.appendChild(titleLabel);
 
     const titleInput = document.createElement('input');
     titleInput.type = 'text';
     titleInput.name = 'item-title';
-    titleInput.id = 'item-title';
+    titleInput.id = 'form-item-title';
+    titleInput.required = true;
     form.appendChild(titleInput);
 
     const descriptionLabel = document.createElement('label');
@@ -553,16 +642,16 @@ function createItemForm(){
     descriptionLabel.textContent = 'Item description:';
     form.appendChild(descriptionLabel);
 
-    const descriptionInput = document.createElement('input');
-    descriptionInput.type = 'text';
+    const descriptionInput = document.createElement('textarea');
     descriptionInput.name = 'item-description';
     descriptionInput.id = 'item-description';
     form.appendChild(descriptionInput);
 
+    const dueDateWrapper = createDivClass('due-date-wrapper');
     const dueDateLabel = document.createElement('label');
     dueDateLabel.setAttribute('for', 'due-date');
     dueDateLabel.textContent = 'Due date:';
-    form.appendChild(dueDateLabel);
+    dueDateWrapper.appendChild(dueDateLabel);
 
     const dueDateInput = document.createElement('input');
     dueDateInput.type = 'date';
@@ -570,31 +659,37 @@ function createItemForm(){
     dueDateInput.id = 'due-date';
     dueDateInput.value = format(new Date(), 'yyyy-MM-dd');
     dueDateInput.required = true; 
-    form.appendChild(dueDateInput);
+    dueDateWrapper.appendChild(dueDateInput);
+    form.appendChild(dueDateWrapper);
 
+    const priorityWrapper = createDivClass('form-priority-wrapper');
     const priorityLabel = document.createElement('label');
     priorityLabel.setAttribute('for', 'priority');
     priorityLabel.textContent = 'High priority?';
-    form.appendChild(priorityLabel);
+    priorityWrapper.appendChild(priorityLabel);
 
     const priorityInput = document.createElement('input');
     priorityInput.type = 'checkbox';
     priorityInput.name = 'priority';
     priorityInput.id = 'priority';
-    form.appendChild(priorityInput);
+    priorityWrapper.appendChild(priorityInput);
+    form.appendChild(priorityWrapper);
+
+    const formButtonWrapper = createDivClass('form-button-wrapper');
 
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
     submitButton.id = 'create-item-btn';
 
-    form.appendChild(submitButton);
+    formButtonWrapper.appendChild(submitButton);
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button'; 
     closeButton.id = 'close-item-dialog-btn';
     closeButton.textContent = 'Close';
 
-    form.appendChild(closeButton);
+    formButtonWrapper.appendChild(closeButton);
+    form.appendChild(formButtonWrapper);
 
     return form;
 
@@ -612,7 +707,7 @@ function projectIconHandler(div, icons){
     }
 }
 
-function editProjectHandler(div){
+function openProjectHandler(div){
     div.addEventListener('click', clickEdit);
     function clickEdit(){
         const display = createProjectDisplay(div.project);
@@ -664,6 +759,7 @@ function createDivClass(cls){
 
 function createIconDiv(img, cls){
     const icon = createIcon(img);
+    icon.classList.add('icon');
     const iconDiv = document.createElement('div');
     iconDiv.classList.add(cls);
     iconDiv.appendChild(icon);
