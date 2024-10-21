@@ -2,6 +2,7 @@ html, body {
     height: 100vh;
     margin: 0;
     padding: 0;
+    background-color: rgb(240, 239, 239);
 }
 
 #main-container {
@@ -11,6 +12,7 @@ html, body {
     align-items: center;
     height: 100vh;
     width: 100%;
+    background-color: rgb(240, 239, 239);
 }
 
 #main-header {
@@ -24,9 +26,21 @@ html, body {
 
 #main-display {
     box-sizing: border-box;
-    border: 2px solid black;
     width: 75%;
     max-width: 1000px;
+    background-color: white;
+    height: 50vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#main-header {
+    background-color: rgb(240, 239, 239);
+}
+
+#main-body {
+    flex-grow: 1;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 #library-header-container {
@@ -50,7 +64,7 @@ html, body {
     justify-content: space-between;
 }
 
-.project-icon-container {
+.project-icon-container, .item-icon-container {
     display: flex;
     opacity: 0;
 }
@@ -60,8 +74,19 @@ html, body {
     justify-content: space-between;
 }
 
-.item-title-container, .item-icon-container, .tab{
+.item-title-container{
     display: flex;
 }
 
+.tab {
+    display: flex;
+    background-color: transparent;
+}
+
+.library-tab {
+    background-color: transparent;
+}
+.remove-tab {
+    display: flex;
+}
 

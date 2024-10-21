@@ -28,7 +28,7 @@ function initDisplay(library) {
 }
 
 function createLibraryTab(library){
-    const libraryTab= createDivClass('tab');
+    const libraryTab= createDivClass('library-tab');
     libraryTab.id = 'library-tab';
     libraryTab.textContent = 'library';
     libraryTab.addEventListener('click', viewAll);
@@ -36,6 +36,7 @@ function createLibraryTab(library){
 
     function viewAll(){
         updateMainBodyDisplay(libraryDisplay(library));
+        updateTabs();
     }
     
     return libraryTab;
@@ -50,15 +51,39 @@ function createProjectTab(project){
     projectTabTitle.project = project;
     projectTabTitle.textContent = project.title;
 
-
-    editProjectHandler(projectTabTitle);
     const removeIcon = createIconDiv(cancelImage, 'remove-tab');
     removeTabHandler(projectTab, removeIcon);
-
+    editProjectHandler(projectTabTitle);
     projectTab.appendChild(projectTabTitle);
     projectTab.appendChild(removeIcon);
     
     return projectTab;
+}
+
+function updateTabs(){
+    const tabList = document.querySelectorAll('.tab');
+    const projectDisplay = document.querySelector('#project-display');
+    if(projectDisplay !== null && projectDisplay !== undefined){
+
+        tabList.forEach(tab => {
+            if(tab.project !== undefined && tab.project !== null){
+                if(tab.project.idNumber === projectDisplay.project.idNumber){
+                    tab.querySelector('.remove-tab').style.display = 'flex';
+                    tab.style.backgroundColor = 'white';
+                }else{
+                    tab.querySelector('.remove-tab').style.display = 'none';
+                    tab.style.backgroundColor = 'transparent';
+                }
+            }
+        });
+    }else{
+        tabList.forEach(tab => {
+            if(tab.project !== undefined && tab.project !== null){ 
+                tab.querySelector('.remove-tab').style.display = 'none'; 
+                tab.style.backgroundColor = 'transparent';
+            }
+        });
+    }
 }
 
 function addTab(tab) {
@@ -317,7 +342,7 @@ function updateItemContainer(div){
 
     const expand = createIconDiv(expandImage, 'expand-item');
     expand.item = item;
-    itemExpandHandler(expand, div);
+    itemExpandHandler(expand, div, iconContainer);
     
 
     const remove = createIconDiv(deleteImage, 'remove-item');
@@ -331,6 +356,8 @@ function updateItemContainer(div){
     itemHeader.appendChild(titleContainer);
     itemHeader.appendChild(iconContainer);
     div.appendChild(itemHeader);
+
+    projectIconHandler(itemHeader, iconContainer);
 
     const dateDiv = createDivClass('item-date');
     dateDiv.textContent = item.dueDate;
@@ -351,7 +378,7 @@ function removeItemHandler(icon){
     }
 }
 
-function itemExpandHandler(icon, div){
+function itemExpandHandler(icon, div, iconContainer){
     icon.addEventListener('click', clickExpand);
     function clickExpand(event){
         event.preventDefault();
@@ -360,9 +387,9 @@ function itemExpandHandler(icon, div){
         div.appendChild(descriptionDiv);
         const collapse = createIcon(collapseImage);
         icon.innerHTML = '';
-        icon.appendChild(collapse);
+        icon.appendChild(collapse); 
         icon.removeEventListener('click', clickExpand);
-        itemCollapseHandler(icon, div);
+        itemCollapseHandler(icon, div, iconContainer);
     }
     
 }
@@ -592,6 +619,7 @@ function editProjectHandler(div){
         updateMainBodyDisplay(display);
         const tab = createProjectTab(div.project);
         addTab(tab);
+        updateTabs();
     }
 }
 
