@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 
 class Item {
     static idNumber = 0;
-    constructor(title, description, priority, status){
+    constructor(title, description, priority){
         this.title = title;
         this.description = description;
         this.dueDate = '';
